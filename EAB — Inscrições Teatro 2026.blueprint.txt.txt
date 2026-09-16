@@ -1,0 +1,150 @@
+{
+	"name": "EAB - Inscrições Teatro 2026",
+	"flow": [
+		{
+			"id": 1,
+			"module": "google-sheets:watch-rows",
+			"version": 1,
+			"parameters": {},
+			"mapper": {
+				"limit": 10,
+				"value": "1",
+				"sheetId": "SEU_NOME_DA_ABA_AQUI",
+				"spreadsheetId": "SEU_SPREADSHEET_ID_AQUI"
+			},
+			"metadata": {
+				"designer": {
+					"x": 0,
+					"y": 0
+				},
+				"restore": {
+					"expect": {
+						"sheetId": {
+							"label": "Respostas ao formulário 1"
+						},
+						"spreadsheetId": {
+							"label": "EAB — Inscrições Teatro 2026 (Respostas)"
+						}
+					},
+					"parameters": {}
+				},
+				"parameters": []
+			}
+		},
+		{
+			"id": 26,
+			"module": "http:make-a-request",
+			"version": 3,
+			"parameters": {},
+			"mapper": {
+				"url": "https://api.mercadopago.com/checkout/preferences",
+				"method": "POST",
+				"headers": [
+					{
+						"name": "Authorization",
+						"value": "Bearer SEU_TOKEN_MERCADO_PAGO_AQUI"
+					},
+					{
+						"name": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"bodyType": "raw",
+				"contentType": "application/json",
+				"serializeUrl": false,
+				"parseResponse": true,
+				"requestContent": "{\n  \"items\": [\n    {\n      \"title\": \"Taxa de Matrícula - Oficina de Teatro 2026\",\n      \"quantity\": 1,\n      \"currency_id\": \"BRL\",\n      \"unit_price\": 15.00\n    }\n  ],\n  \"payer\": {\n    \"name\": \"{{1.`1`}}\",\n    \"email\": \"{{1.`2`}}\"\n  },\n  \"external_reference\": \"{{1.`__ROW_NUMBER__`}}\",\n  \"back_urls\": {\n    \"success\": \"https://SEU_SITE_AQUI.com\",\n    \"failure\": \"https://SEU_SITE_AQUI.com\",\n    \"pending\": \"https://SEU_SITE_AQUI.com\"\n  },\n  \"auto_return\": \"approved\"\n}"
+			},
+			"metadata": {
+				"designer": {
+					"x": 300,
+					"y": 0
+				},
+				"restore": {
+					"expect": {
+						"method": {
+							"label": "POST"
+						},
+						"bodyType": {
+							"label": "Raw"
+						},
+						"contentType": {
+							"label": "JSON (application/json)"
+						}
+					}
+				},
+				"parameters": []
+			}
+		},
+		{
+			"id": 27,
+			"module": "google-sheets:update-a-row",
+			"version": 1,
+			"parameters": {},
+			"mapper": {
+				"row": "{{1.`__ROW_NUMBER__`}}",
+				"values": {
+					"4": "{{26.data.init_point}}"
+				},
+				"sheetId": "SEU_NOME_DA_ABA_AQUI",
+				"spreadsheetId": "SEU_SPREADSHEET_ID_AQUI"
+			},
+			"metadata": {
+				"designer": {
+					"x": 600,
+					"y": 0
+				},
+				"restore": {
+					"expect": {
+						"sheetId": {
+							"label": "Respostas ao formulário 1"
+						},
+						"spreadsheetId": {
+							"label": "EAB — Inscrições Teatro 2026 (Respostas)"
+						}
+					},
+					"parameters": []
+				},
+				"parameters": []
+			}
+		},
+		{
+			"id": 2,
+			"module": "email:send-an-email",
+			"version": 1,
+			"parameters": {},
+			"mapper": {
+				"to": [
+					"{{1.`2`}}"
+				],
+				"html": "<div style=\"font-family: Arial, sans-serif; color: #333;\">\n  <h2>Confirmação de Inscrição — Oficinas de Teatro 2026</h2>\n  <p>Olá, <strong>{{1.`1`}}</strong>!</p>\n  <p>Recebemos sua pré-inscrição com sucesso.</p>\n  <hr>\n  <p><strong>Para concluir sua matrícula, realize o pagamento da taxa de R$ 15,00 clicando no botão abaixo:</strong></p>\n  <p style=\"text-align: center;\">\n    <a href=\"{{26.data.init_point}}\" style=\"background-color: #28a745; color: white; padding: 12px 20px; text-decoration: none; font-weight: bold; border-radius: 5px; display: inline-block;\">Pagar Taxa de Matrícula (R$ 15,00)</a>\n  </p>\n  <p><em>Se o botão não funcionar, copie e cole este link no seu navegador:</em><br><a href=\"{{26.data.init_point}}\">{{26.data.init_point}}</a></p>\n  <hr>\n  <p>📌 <strong>IMPORTANTE:</strong> Após realizar o pagamento, entre no grupo oficial de avisos da turma no WhatsApp para acompanhar os comunicados:</p>\n  <p><a href=\"https://chat.whatsapp.com/SEU_GRUPO_WHATSAPP_AQUI\">👉 Clique aqui para entrar no Grupo do WhatsApp</a></p>\n  <br>\n  <p>Atenciosamente,<br><strong>Coordenação das Oficinas de Teatro</strong></p>\n</div>",
+				"subject": "Confirmação de Inscrição + Link de Pagamento — Teatro 2026",
+				"senderEmail": "SEU_EMAIL_AQUI@DOMINIO.COM"
+			},
+			"metadata": {
+				"designer": {
+					"x": 900,
+					"y": 0
+				},
+				"restore": {},
+				"parameters": []
+			}
+		}
+	],
+	"metadata": {
+		"instant": false,
+		"version": 1,
+		"scenario": {
+			"roundtrip": 1,
+			"maxErrors": 3,
+			"autoCommit": true,
+			"autoCommitTriggerLast": true,
+			"sequential": false,
+			"slots": 1
+		},
+		"designer": {
+			"orphans": []
+		},
+		"zone": "us1.make.com"
+	}
+}
