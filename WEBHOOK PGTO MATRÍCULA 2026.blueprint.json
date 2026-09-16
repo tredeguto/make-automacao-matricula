@@ -1,0 +1,188 @@
+{
+    "name": "WEBHOOK PGTO MATRÍCULA 2026",
+    "flow": [
+        {
+            "id": 2,
+            "module": "gateway:CustomWebHook",
+            "version": 1,
+            "parameters": {
+                "hook": "SEU_HOOK_ID_AQUI",
+                "maxResults": 1
+            },
+            "mapper": {},
+            "metadata": {
+                "designer": {
+                    "x": 0,
+                    "y": 0,
+                    "name": "Webhook Mercado Pago - Inscrições"
+                },
+                "restore": {
+                    "parameters": {
+                        "hook": {
+                            "data": {
+                                "editable": "true"
+                            },
+                            "label": "Webhook Mercado Pago - Inscrições"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "hook",
+                        "type": "hook:gateway-webhook",
+                        "label": "Webhook",
+                        "required": true
+                    },
+                    {
+                        "name": "maxResults",
+                        "type": "number",
+                        "label": "Maximum number of results"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 3,
+            "module": "http:MakeRequest",
+            "version": 4,
+            "parameters": {
+                "handleErrors": false,
+                "useContentAuthorization": false,
+                "followRedirect": true,
+                "useRequestAndResponseHeaders": false,
+                "useMutualTLS": false,
+                "responseHeaders": false,
+                "serializeUrl": false,
+                "shareCookies": false,
+                "parseResponse": true,
+                "timeout": null,
+                "rejectUnauthorized": true,
+                "followAllRedirects": false,
+                "authType": "none"
+            },
+            "mapper": {
+                "url": "https://api.mercadopago.com/v1/payments/{{2.data.id}}",
+                "method": "get",
+                "headers": [
+                    {
+                        "name": "Authorization",
+                        "value": "Bearer SEU_TOKEN_MERCADO_PAGO_AQUI"
+                    }
+                ]
+            },
+            "metadata": {
+                "designer": {
+                    "x": 300,
+                    "y": 0,
+                    "name": "Consulta Pagamento MP"
+                },
+                "restore": {
+                    "parameters": {
+                        "authType": {
+                            "label": "No auth"
+                        }
+                    }
+                },
+                "parameters": [
+                    {
+                        "name": "url",
+                        "type": "url",
+                        "label": "URL",
+                        "required": true
+                    },
+                    {
+                        "name": "method",
+                        "type": "select",
+                        "label": "Method",
+                        "required": true
+                    },
+                    {
+                        "name": "headers",
+                        "type": "array",
+                        "label": "Headers"
+                    }
+                ]
+            }
+        },
+        {
+            "id": 4,
+            "module": "google-sheets:updateRow",
+            "version": 2,
+            "parameters": {
+                "from": "drive",
+                "mode": "select",
+                "sheetId": "SEU_NOME_DA_ABA_AQUI",
+                "spreadsheetId": "SEU_SPREADSHEET_ID_AQUI",
+                "tableFirstRow": "A1:Z1",
+                "valueRenderOption": "FORMATTED_VALUE",
+                "dateTimeRenderOption": "FORMATTED_STRING"
+            },
+            "mapper": {
+                "row": "{{3.body.external_reference}}",
+                "values": {
+                    "11": "{{3.body.status}}",
+                    "13": "{{3.body.status_detail}}"
+                }
+            },
+            "metadata": {
+                "designer": {
+                    "x": 600,
+                    "y": 0,
+                    "name": "Atualiza Status Planilha"
+                },
+                "restore": {
+                    "parameters": {
+                        "sheetId": {
+                            "label": "Respostas ao formulário 1"
+                        },
+                        "spreadsheetId": {
+                            "label": "EAB — Inscrições Teatro 2026 (Respostas)"
+						}
+                    }
+                }
+            }
+        },
+        {
+            "id": 5,
+            "module": "email:send-an-email",
+            "version": 1,
+            "parameters": {},
+            "mapper": {
+                "to": [
+                    "{{3.body.payer.email}}"
+                ],
+                "html": "<div style=\"font-family: Arial, sans-serif; color: #333;\">\n  <h2>Confirmação de Pagamento de Matrícula!</h2>\n  <p>Olá, <strong>{{3.body.payer.first_name}}</strong>!</p>\n  <p>Seu pagamento da taxa de matrícula foi <strong>APROVADO</strong> com sucesso!</p>\n  <hr>\n  <p>📌 <strong>PRÓXIMO PASSO:</strong> Se você ainda não entrou no grupo de comunicação dos alunos no WhatsApp, clique no link abaixo:</p>\n  <p><a href=\"https://chat.whatsapp.com/SEU_GRUPO_WHATSAPP_AQUI\">👉 Entrar no Grupo Oficial do WhatsApp</a></p>\n  <br>\n  <p>Nos vemos na aula!<br><strong>Coordenação das Oficinas de Teatro</strong></p>\n</div>",
+                "subject": "Matrícula Confirmada — Teatro 2026",
+                "senderEmail": "SEU_EMAIL_AQUI@DOMINIO.COM"
+            },
+            "metadata": {
+                "designer": {
+                    "x": 900,
+                    "y": 0,
+                    "name": "Envia E-mail de Confirmação"
+                }
+            }
+        }
+    ],
+    "metadata": {
+        "instant": true,
+        "version": 1,
+        "scenario": {
+            "roundtrips": 1,
+            "maxErrors": 3,
+            "autoCommit": true,
+            "autoCommitTriggerLast": true,
+            "sequential": false,
+            "slots": null,
+            "confidential": false,
+            "dataloss": false,
+            "dlq": false,
+            "freshVariables": false
+        },
+        "designer": {
+            "orphans": []
+        },
+        "zone": "us2.make.com",
+        "notes": []
+    }
+}
